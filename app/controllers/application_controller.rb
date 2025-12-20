@@ -39,19 +39,32 @@ class ApplicationController < ActionController::API
 
   def authenticate_request
     header = request.headers["Authorization"]
-    token = header.split(" ")&.last
+    if header.blank?
+      return render_error(message: "Missing authorization token", status_code: 401)
+    end
 
-    begin
-      decoded = JwtService.decode(token)
-    rescue JWT::DecodeError
-      render_error(message: "Invalid token", status_code: 401)
+    token = header.split(" ").last
+    if token.blank?
+      return render_error(message: "Invalid token format", status_code: 401)
+    end
+
+    decoded = JwtService.decode(token)
+    if decoded.nil?
+      return render_error(message: "Invalid or expired token", status_code: 401)
     end
 
     @current_user = User.find_by(id: decoded[:user_id])
     if @current_user.nil?
-      render_error(message: "User not found", status_code: 401)
+      return render_error(message: "User not found", status_code: 401)
+    end
+
+    if JwtService.valid_token_for_user?(token, user) == false
+      return render_error(message: "Token is invalid or expired", status_code: 401)
     end
 
     @current_user
+  rescue JWT::DecodeError => e
+    Rails.logger.error "JWT Decode Error: #{e.message}"
+    render_error(message: "Invalid token", status_code: 401)
   end
 end

@@ -4,8 +4,9 @@ Rails.application.routes.draw do
   get "/auth/:provider/callback", to: "sessions#google"
   get "/auth/failure", to: redirect("/")
   post "/auth/login", to: "sessions#login"
+  post "auth/refresh", to: "sessions#refresh"
 
-  resources :users do
+  resources :users, only: [] do
     collection do
       post :create
       post :verify_otp

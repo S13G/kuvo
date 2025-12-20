@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class SessionsController < ApplicationController
-  skip_before_action :authenticate_request, only: %i[google login]
+  skip_before_action :authenticate_request, only: %i[google login refresh]
 
   def google
     auth = request.env["omniauth.auth"]
@@ -11,23 +11,92 @@ class SessionsController < ApplicationController
       user.email = auth.info.email
       user.username = generate_username(auth.info.name)
       user.password = SecureRandom.hex(15)
+      user.provider = auth.provider
+      user.uid = auth.uid
       user.save!
     end
 
-    token = JwtService.encode(user_id: user.id)
-    render_success(message: "Signed in with Google", data: { token: token, user: user })
+    access_token, refresh_token = JwtService.generate_tokens(user.id)
+    render_success(
+      message: "Signed in with Google",
+      data: {
+        token: {
+          access_token: access_token,
+          refresh_token: refresh_token
+        },
+        user: user.as_json
+      }
+    )
   end
 
   def login
-    email = params[:email]
+    email_or_username = params[:login]
     password = params[:password]
 
-    user = User.find_by(email: email)
+    user = User.find_by(email: email_or_username) || User.find_by(username: email_or_username)
+    if user.nil?
+      return render_error(message: "Invalid email or username", status_code: 404)
+    end
+
     if user && user.authenticate(password)
-      token = JwtService.encode(user_id: user.id)
-      render_success(message: "Signed in successfully", data: { token: token, user: user.as_json })
+      user.update!(last_login_at: Time.current)
+
+      access_token, refresh_token = JwtService.generate_tokens(user_id: user.id)
+      render_success(
+        message: "Signed in successfully",
+        data: {
+          token: {
+            access_token: access_token,
+            refresh_token: refresh_token
+          },
+          user: user.as_json
+        }
+      )
     else
-      render_error(message: "Invalid email or password")
+      render_error(message: "Invalid password")
+    end
+  end
+
+  def refresh
+    refresh_token = params[:refresh_token]
+    if refresh_token.blank?
+      return render_error(message: "Missing refresh token", status_code: 401)
+    end
+
+    begin
+      decoded = JwtService.decode(refresh_token)
+      if decoded.nil?
+        return render_error(message: "Invalid or expired refresh token", status_code: 401)
+      end
+
+      if decoded[:type] != "refresh"
+        return render_error(message: "Not a refresh token", status_code: 401)
+      end
+
+      user = User.find_by(id: decoded[:user_id])
+      if user.nil?
+        return render_error(message: "User not found", status_code: 401)
+      end
+
+      # Blacklist the used refresh token
+      BlacklistedToken.blacklist!(
+        jti: decoded[:jti],
+        exp: decoded[:exp],
+        user: user
+      )
+
+      access_token = JwtService.generate_access_token(user.id)
+      new_refresh_token = JwtService.generate_refresh_token(user.id)
+
+      render_success(
+        message: "Token refreshed successfully",
+        data: {
+          access_token: access_token,
+          refresh_token: new_refresh_token
+        }
+      )
+    rescue JWT::DecodeError => e
+      render_error(message: "Invalid refresh token", status_code: 401)
     end
   end
 

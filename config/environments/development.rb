@@ -30,27 +30,28 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
-
-  # Make template changes take effect immediately.
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.perform_deliveries = true
   config.action_mailer.perform_caching = false
-
-  config.active_job.queue_adapter = :solid_queue
 
   config.action_mailer.delivery_method = :smtp
 
   config.action_mailer.smtp_settings = {
-    address: "smtp.gmail.com",
-    port: 587,
-    domain: "gmail.com",
-    user_name: ENV["GMAIL_USERNAME"],  # your gmail
-    password: ENV["GMAIL_PASSWORD"],   # app password recommended
-    authentication: "plain",
-    enable_starttls_auto: true
+    user_name: ENV["MAIL_USERNAME"],
+    password: ENV["MAIL_PASSWORD"],
+    address: "sandbox.smtp.mailtrap.io",
+    host: "sandbox.smtp.mailtrap.io",
+    port: "2525",
+    authentication: :login,
+    enable_starttls_auto: true,
+    openssl_verify_mode: "none"
   }
 
   # Set localhost to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+
+  # Make sure Active Job uses Solid Queue
+  config.active_job.queue_adapter = :solid_queue
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
