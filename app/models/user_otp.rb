@@ -1,12 +1,13 @@
 class UserOtp < ApplicationRecord
   belongs_to :user
 
-  def create_object(user, otp_code)
-    self.user = user
-    self.otp_code = otp_code
-    self.expires_at = 10.minutes.from_now
-    self.verified = false
-    save
+  def self.create_object(user, otp_code)
+    create(
+      user: user,
+      otp_code: otp_code,
+      expires_at: 10.minutes.from_now,
+      verified: false
+    )
   end
 
   def not_expired?
