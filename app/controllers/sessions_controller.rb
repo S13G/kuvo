@@ -64,24 +64,32 @@ class SessionsController < ApplicationController
     end
 
     begin
-      decoded = JwtService.decode(refresh_token)
-      if decoded.nil?
+      decoded_payload = JwtService.decode(refresh_token)
+      if decoded_payload.nil?
         return render_error(message: "Invalid or expired refresh token", status_code: 401)
       end
 
-      if decoded[:type] != "refresh"
+      if decoded_payload[:type] != "refresh"
         return render_error(message: "Not a refresh token", status_code: 401)
       end
 
-      user = User.find_by(id: decoded[:user_id])
+      user_id = nil
+      if decoded_payload[:user_id].is_a?(Hash)
+        user_id = decoded_payload[:user_id][:user_id]
+      else
+        user_id = decoded_payload[:user_id]
+      end
+
+      user = User.find_by(id: user_id)
+      puts "useis #{user}"
       if user.nil?
         return render_error(message: "User not found", status_code: 401)
       end
 
       # Blacklist the used refresh token
       BlacklistedToken.blacklist!(
-        jti: decoded[:jti],
-        exp: decoded[:exp],
+        jti: decoded_payload[:jti],
+        exp: decoded_payload[:exp],
         user: user
       )
 
