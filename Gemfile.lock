@@ -96,6 +96,9 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     dotenv (3.2.0)
+    dotenv-rails (3.2.0)
+      dotenv (= 3.2.0)
+      railties (>= 6.1)
     drb (2.2.3)
     ed25519 (1.4.0)
     erb (6.0.0)
@@ -160,6 +163,8 @@ GEM
       net-imap
       net-pop
       net-smtp
+    mailtrap (2.5.0)
+      base64
     marcel (1.1.0)
     mini_magick (5.3.1)
       logger
@@ -394,10 +399,13 @@ DEPENDENCIES
   brakeman
   bundler-audit
   debug
+  dotenv-rails (~> 3.2)
   image_processing (~> 1.2)
   jbuilder
   jwt
   kamal
+  mail (~> 2.9)
+  mailtrap (~> 2.5)
   omniauth
   omniauth-google-oauth2
   pg (~> 1.1)

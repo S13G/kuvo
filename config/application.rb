@@ -10,14 +10,20 @@ module Kuvo
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.1
+
     # REQUIRED FOR OMNIAUTH
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore,
                           key: "_kuvo_session"
+    # Configure generators to use UUIDs by default
+    config.generators do |g|
+      g.orm :active_record, primary_key_type: :uuid
+      g.orm :active_record, foreign_key_type: :uuid
+    end
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
-    # Common ones are `templates`, `generators`, or `middleware`, for example.
+    # Common ones are `templates`, `generators`, or `middleware`, for example.Ø
     config.autoload_lib(ignore: %w[assets tasks])
 
     # Configuration for the application, engines, and railties goes here.

@@ -17,6 +17,7 @@ gem "rack-cors"
 gem "omniauth"
 gem "omniauth-google-oauth2"
 gem "jwt"
+gem "dotenv-rails", "~> 3.2"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
@@ -25,5 +26,5 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 end
 
-group :development do
-end
+gem "mail", "~> 2.9"
+gem "mailtrap", "~> 2.5"
