@@ -1,8 +1,7 @@
 Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
-  get "/auth/:provider/callback", to: "sessions#google"
-  get "/auth/failure", to: redirect("/")
+  post "/auth/google", to: "sessions#google"
   post "/auth/login", to: "sessions#login"
   post "auth/refresh", to: "sessions#refresh"
 
@@ -13,6 +12,13 @@ Rails.application.routes.draw do
       post :request_otp
       post :create_new_password
       post :verify_user
+    end
+  end
+
+  resources :profiles, only: [] do
+    collection do
+      patch :update
+
     end
   end
 end

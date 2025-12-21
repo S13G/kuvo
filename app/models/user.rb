@@ -11,6 +11,35 @@ class User < ApplicationRecord
   validates :password, length: { minimum: 8 }, allow_nil: true
   validate :password_complexity
 
+  after_create :create_profile, :send_otp_email
+
+  def generate_secure_password(length = 12)
+    chars = [
+      ("A".."Z").to_a.sample,
+      ("a".."z").to_a.sample,
+      ("0".."9").to_a.sample,
+      %w[! @ # $ % ^ & *].sample
+    ]
+
+    # Fill the rest with random characters from all types
+    all_chars = [("A".."Z"), ("a".."z"), ("0".."9"), %w[! @ # $ % ^ & *]].map(&:to_a).flatten
+    chars += Array.new(length - chars.size) { all_chars.sample }
+
+    chars.shuffle.join
+  end
+
+  def as_json(options = nil)
+    super(only: %i[id email username created_at updated_at])
+  end
+
+  def send_otp_email
+    otp = generate_otp
+    UserOtp.create_object(self, otp)
+    SendOtpEmailJob.perform_later(id, otp)
+  end
+
+  private
+
   def generate_otp
     rand(100000..999999)
   end
@@ -25,7 +54,8 @@ class User < ApplicationRecord
     errors.add(:password, "must contain at least one special character (!@#$%^&*)") if password.match?(/[!@#$%^&*]/) == false
   end
 
-  def as_json(options = nil)
-    super(only: %i[id email username created_at updated_at])
+  def create_profile
+    # initialize profile so user.profile never returns nil
+    build_profile.save(validate: false)
   end
 end

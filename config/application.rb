@@ -11,10 +11,6 @@ module Kuvo
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.1
 
-    # REQUIRED FOR OMNIAUTH
-    config.middleware.use ActionDispatch::Cookies
-    config.middleware.use ActionDispatch::Session::CookieStore,
-                          key: "_kuvo_session"
     # Configure generators to use UUIDs by default
     config.generators do |g|
       g.orm :active_record, primary_key_type: :uuid

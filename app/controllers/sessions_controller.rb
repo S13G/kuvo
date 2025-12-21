@@ -4,19 +4,32 @@ class SessionsController < ApplicationController
   skip_before_action :authenticate_request, only: %i[google login refresh]
 
   def google
-    auth = request.env["omniauth.auth"]
+    id_token = params[:id_token]
+    return render_error(message: "Missing id_token", status_code: 400) if id_token.blank?
 
-    user = User.find_or_initialize_by(email: auth.info.email)
+    payload = verify_google_id_token(id_token)
+    return render_error(message: "Invalid Google token", status_code: 401) if payload.nil?
+    puts "payload #{payload}"
+
+    email = payload["email"]
+    name = payload["name"]
+    sub = payload["sub"] # Google user ID (stable)
+
+    user = User.find_or_initialize_by(email: email)
+
     if user.new_record?
-      user.email = auth.info.email
-      user.username = generate_username(auth.info.name)
-      user.password = SecureRandom.hex(15)
-      user.provider = auth.provider
-      user.uid = auth.uid
-      user.save!
+      username_source = name || email
+      user.username = generate_username(username_source)
+      user.password = user.generate_secure_password
+      user.provider = "google"
+      user.uid = sub
     end
 
+    user.last_login_at = Time.current
+    user.save!
+
     access_token, refresh_token = JwtService.generate_tokens(user.id)
+
     render_success(
       message: "Signed in with Google",
       data: {
@@ -81,7 +94,6 @@ class SessionsController < ApplicationController
       end
 
       user = User.find_by(id: user_id)
-      puts "useis #{user}"
       if user.nil?
         return render_error(message: "User not found", status_code: 401)
       end
@@ -110,8 +122,27 @@ class SessionsController < ApplicationController
 
   private
 
-  def generate_username(name)
-    base = name.parameterize
+  def verify_google_id_token(id_token)
+    key_source = Google::Auth::IDTokens::JwkHttpKeySource.new(
+      "https://www.googleapis.com/oauth2/v3/certs"
+    )
+
+    validator = Google::Auth::IDTokens::Verifier.new(
+      key_source: key_source
+    )
+
+    validator.verify(
+      id_token,
+      aud: ENV["GOOGLE_CLIENT_ID"],
+      iss: ["https://accounts.google.com", "accounts.google.com"]
+    )
+  rescue Google::Auth::IDTokens::VerificationError => e
+    Rails.logger.error("Google ID token verification failed: #{e.message}")
+    nil
+  end
+
+  def generate_username(name_or_email)
+    base = (name_or_email || "user").parameterize
     username = base
     count = 1
 

@@ -11,3 +11,4 @@ class BlacklistedToken < ApplicationRecord
     exists?(jti: jti)
   end
 end
+

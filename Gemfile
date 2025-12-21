@@ -14,8 +14,6 @@ gem "kamal", require: false
 gem "thruster", require: false
 gem "image_processing", "~> 1.2"
 gem "rack-cors"
-gem "omniauth"
-gem "omniauth-google-oauth2"
 gem "jwt"
 gem "dotenv-rails", "~> 3.2"
 
@@ -28,3 +26,5 @@ end
 
 gem "mail", "~> 2.9"
 gem "mailtrap", "~> 2.5"
+
+gem "googleauth", "~> 1.16"

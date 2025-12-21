@@ -5,7 +5,7 @@ class UsersController < ApplicationController
     user = User.new(user_params)
 
     if user.save
-      send_otp_email(user)
+      user.send_otp_email
       render_success(
         message: "Account registered successfully. Please check your email for OTP.",
         data: { user: user.as_json },
@@ -25,7 +25,12 @@ class UsersController < ApplicationController
   end
 
   def request_otp
-    send_otp_email(find_user(params[:email]))
+    user = find_user(params[:email])
+    if user.nil?
+      return render_error(message: "User not found", status_code: 404)
+    end
+
+    user.send_otp_email
     render_success(message: "OTP sent successfully")
   end
 
@@ -44,8 +49,17 @@ class UsersController < ApplicationController
       user.update(is_verified: true)
 
       # Give tokens to log user in
-      tokens = JwtService.encode(user_id: user.id)
-      render_success(message: "User verified successfully", data: { user: user.as_json, tokens: tokens })
+      access_token, refresh_token = JwtService.generate_tokens(user_id: user.id)
+      render_success(
+        message: "User verified successfully",
+        data: {
+          user: user.as_json,
+          token: {
+            access_token: access_token,
+            refresh_token: refresh_token
+          }
+        }
+      )
     else
       render_error(message: "Invalid or expired OTP")
     end
@@ -90,13 +104,6 @@ class UsersController < ApplicationController
   end
 
   private
-
-
-  def send_otp_email(user)
-    otp = user.generate_otp
-    UserOtp.create_object(user, otp)
-    SendOtpEmailJob.perform_later(user.id, otp)
-  end
 
   def find_user(email)
     User.find_by(email: email)
