@@ -15,10 +15,5 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :profiles, only: [] do
-    collection do
-      patch :update
-
-    end
-  end
+  resource :profile, only: [:show, :update]
 end

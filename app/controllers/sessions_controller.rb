@@ -9,7 +9,6 @@ class SessionsController < ApplicationController
 
     payload = verify_google_id_token(id_token)
     return render_error(message: "Invalid Google token", status_code: 401) if payload.nil?
-    puts "payload #{payload}"
 
     email = payload["email"]
     name = payload["name"]
