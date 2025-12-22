@@ -28,3 +28,5 @@ gem "mail", "~> 2.9"
 gem "mailtrap", "~> 2.5"
 
 gem "googleauth", "~> 1.16"
+
+gem "active_storage_validations", "~> 3.0"

@@ -58,7 +58,7 @@ class ApplicationController < ActionController::API
       return render_error(message: "User not found", status_code: 401)
     end
 
-    if JwtService.valid_token_for_user?(token, user) == false
+    if JwtService.valid_token_for_user?(token, @current_user) == false
       return render_error(message: "Token is invalid or expired", status_code: 401)
     end
 

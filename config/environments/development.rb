@@ -53,6 +53,13 @@ Rails.application.configure do
   # Make sure Active Job uses Solid Queue
   config.active_job.queue_adapter = :solid_queue
 
+  config.active_storage.resolve_model_to_route = :rails_storage_proxy
+  config.active_storage.service_urls_expire_in = 5.hour
+  config.active_storage.routes_prefix = "/rails/active_storage"
+  config.action_controller.asset_host = "http://localhost:3000" # For generating asset links
+  # For generating URL helpers (e.g. links for password reset links in emails, etc)
+  Rails.application.routes.default_url_options[:host] = "localhost:3000"
+
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
 

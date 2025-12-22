@@ -1,6 +1,14 @@
 # frozen_string_literal: true
 
 class ProfilesController < ApplicationController
+  def show
+    user_profile = @current_user.profile
+    render_success(
+      message: "Profile retrieved successfully",
+      data: user_profile.as_json
+    )
+  end
+
   def update
     user_profile = @current_user.profile
 
@@ -27,6 +35,6 @@ class ProfilesController < ApplicationController
   private
 
   def profile_params
-    params.permit(:full_name, :phone_number, :date_of_birth, :gender)
+    params.permit(:full_name, :phone_number, :date_of_birth, :gender, :avatar)
   end
 end
