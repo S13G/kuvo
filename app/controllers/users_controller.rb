@@ -42,6 +42,10 @@ class UsersController < ApplicationController
       return render_error(message: "User not found", status_code: 404)
     end
 
+    if user.is_verified
+      return render_success(message: "User already verified")
+    end
+
     otp = user.user_otps.last
 
     if otp && otp.otp_code == otp_code && otp.not_expired?

@@ -28,8 +28,15 @@ class User < ApplicationRecord
     chars.shuffle.join
   end
 
-  def as_json(options = nil)
-    super(only: %i[id email username created_at updated_at])
+  def as_json(options = {})
+    {
+      id: id,
+      email: email,
+      username: username,
+      created_at: created_at,
+      updated_at: updated_at,
+      profile_exist: profile.present?
+    }
   end
 
   def send_otp_email
