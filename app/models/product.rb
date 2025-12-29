@@ -2,6 +2,7 @@
 
 class Product < ApplicationRecord
   has_many :product_categories
+  has_many :categories, through: :product_categories
 
   has_many :product_variants
   has_many :product_sizes, through: :product_variants
@@ -12,6 +13,26 @@ class Product < ApplicationRecord
 
   has_many :product_favorites, dependent: :destroy
   has_many :favorited_by_users, through: :product_favorites, source: :user
+
+  before_create :set_created_by
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[created_by created_at description id is_active name price_cents updated_at]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[
+      favorited_by_users
+      product_categories
+      categories
+      product_colors
+      product_favorites
+      product_images
+      product_reviews
+      product_sizes
+      product_variants
+    ]
+  end
 
   def average_rating
     product_reviews.average(:rating)&.round(1) || 0
@@ -38,19 +59,17 @@ class Product < ApplicationRecord
     price_cents - (price_cents * discount.percentage_off / 100)
   end
 
-  def discounted_price
-    discounted_price_cents / 100
-  end
-
-  def price
-    price_cents / 100
-  end
-
   def formatted_price
-    Money.new(price, AppSetting.currency).format
+    Money.new(price_cents, CurrencySetting.currency).format
   end
 
   def formatted_discounted_price
-    Money.new(discounted_price, AppSetting.currency).format
+    Money.new(discounted_price_cents, CurrencySetting.currency).format
+  end
+
+  private
+
+  def set_created_by
+    self.created_by = current_admin_user
   end
 end

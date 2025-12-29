@@ -11,6 +11,14 @@ class ProductVariant < ApplicationRecord
     message: "Variant already exists"
   }
 
+  def self.ransackable_attributes(auth_object = nil)
+    %w[created_at id product_id product_size_id product_color_id stock updated_at]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[product product_size product_color]
+  end
+
   def label
     [product_size.name, product_color.hex_code].compact.join(" / ")
   end

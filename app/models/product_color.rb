@@ -9,7 +9,4 @@ class ProductColor < ApplicationRecord
             format: { with: /\A#(?:\h{3}|\h{6})\z/ },
             allow_nil: true
 
-  def display_name
-    hex_code.present? ? "#{name} (#{hex_code})" : name
-  end
 end

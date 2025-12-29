@@ -8,6 +8,14 @@ class ProductReview < ApplicationRecord
 
   after_commit :touch_product
 
+  def self.ransackable_attributes(auth_object = nil)
+    %w[created_at updated_at user_id product_id rating id]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[user product]
+  end
+
   private
 
   # When a ProductReview is created or updated, update the `updated_at`

@@ -6,8 +6,4 @@ class ProductSize < ApplicationRecord
 
   validates :name, :code, presence: true
   validates :code, uniqueness: true
-
-  def label
-    "#{label} - #{code}"
-  end
 end
