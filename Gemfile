@@ -40,3 +40,6 @@ gem "sass-rails", "~> 6.0"
 gem "devise", "~> 4.9"
 gem "activeadmin", "~> 3.4"
 
+gem "chartkick", "~> 5.2"
+
+gem "groupdate", "~> 6.7"
