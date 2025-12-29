@@ -4,15 +4,16 @@ class User < ApplicationRecord
   has_one :profile, dependent: :destroy, class_name: "Profile"
   has_many :user_otps, dependent: :destroy
   has_many :blacklisted_tokens, dependent: :destroy
+  has_many :product_favorites, dependent: :destroy
+  has_many :favorited_products, through: :product_favorites, source: :product
 
   validates :email, presence: true, uniqueness: true
   validates :username, presence: true, uniqueness: true
 
-  validates :password, length: { minimum: 8 }, allow_nil: true
+  validates :password, length: { minimum: 8 }, presence: true
   validate :password_complexity
 
   after_create :create_profile, :send_otp_email
-
   def generate_secure_password(length = 12)
     chars = [
       ("A".."Z").to_a.sample,
@@ -22,7 +23,12 @@ class User < ApplicationRecord
     ]
 
     # Fill the rest with random characters from all types
-    all_chars = [("A".."Z"), ("a".."z"), ("0".."9"), %w[! @ # $ % ^ & *]].map(&:to_a).flatten
+    all_chars = [
+      ("A".."Z"),
+      ("a".."z"),
+      ("0".."9"),
+      %w[! @ # $ % ^ & *]
+    ].map(&:to_a).flatten
     chars += Array.new(length - chars.size) { all_chars.sample }
 
     chars.shuffle.join
@@ -43,6 +49,18 @@ class User < ApplicationRecord
     otp = generate_otp
     UserOtp.create_object(self, otp)
     SendOtpEmailJob.perform_later(id, otp)
+  end
+
+  def bookmark(product)
+    product_favorites.find_or_create_by(product: product)
+  end
+
+  def unbookmark(product)
+    product_favorites.where(product: product).destroy_all
+  end
+
+  def bookmarked?(product)
+    favorited_products.exists?(product.id)
   end
 
   private

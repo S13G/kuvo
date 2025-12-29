@@ -2,21 +2,18 @@
 
 class Discount < ApplicationRecord
   validates :percentage_off, inclusion: { in: 1..100 }
+  validate :only_one_discount, on: :create
+  validates :singleton_guard, uniqueness: true
 
-  before_save :ensure_single_active_discount
-
-  scope :active, -> {
-    where(active: true)
-      .where("starts_at <= ? AND ends_at >= ?", Time.current, Time.current)
-  }
+  def active?
+    active && (starts_at < Time.current && ends_at > Time.current)
+  end
 
   private
 
-  def ensure_single_active_discount
-    if active? == false
-      return
+  def only_one_discount
+    if Discount.exists?
+      errors.add(:base, "A discount already exists. Only one discount can exist at a time.")
     end
-
-    Discount.where(active: true).where.not(id: id).update_all(active: false)
   end
 end

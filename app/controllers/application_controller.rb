@@ -1,5 +1,5 @@
-class ApplicationController < ActionController::API
-  before_action :authenticate_request
+class ApplicationController < ActionController::Base
+  before_action :authenticate_request, if: :jwt_auth_required?
 
   def render_success(message: "", data: nil, status_code: 200)
     render json: {
@@ -35,7 +35,13 @@ class ApplicationController < ActionController::API
     render_error(message: "Record already exists", errors: [ e.message ], status_code: 400)
   end
 
-  private
+  protected
+
+  def jwt_auth_required?
+    return false if devise_controller?
+    return false if request.path.start_with?("/admin")
+    request.format.json?
+  end
 
   def authenticate_request
     header = request.headers["Authorization"]
