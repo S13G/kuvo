@@ -53,6 +53,16 @@ GEM
       activestorage (>= 6.1.4)
       activesupport (>= 6.1.4)
       marcel (>= 1.0.3)
+    activeadmin (3.4.0)
+      arbre (~> 1.2, >= 1.2.1)
+      csv
+      formtastic (>= 3.1)
+      formtastic_i18n (>= 0.4)
+      inherited_resources (~> 1.7)
+      jquery-rails (>= 4.2)
+      kaminari (>= 1.2.1)
+      railties (>= 6.1)
+      ransack (>= 4.0)
     activejob (8.1.1)
       activesupport (= 8.1.1)
       globalid (>= 0.3.6)
@@ -83,6 +93,9 @@ GEM
       uri (>= 0.13.1)
     addressable (2.8.8)
       public_suffix (>= 2.0.2, < 8.0)
+    arbre (1.7.0)
+      activesupport (>= 3.0.0)
+      ruby2_keywords (>= 0.0.2)
     ast (2.4.3)
     base64 (0.3.0)
     bcrypt (3.1.20)
@@ -96,13 +109,21 @@ GEM
     bundler-audit (0.9.3)
       bundler (>= 1.2.0)
       thor (~> 1.0)
+    cancancan (3.6.1)
     concurrent-ruby (1.3.6)
     connection_pool (3.0.2)
     crass (1.0.6)
+    csv (3.3.5)
     date (3.5.1)
     debug (1.11.0)
       irb (~> 1.10)
       reline (>= 0.3.8)
+    devise (4.9.4)
+      bcrypt (~> 3.0)
+      orm_adapter (~> 0.1)
+      railties (>= 4.1.0)
+      responders
+      warden (~> 1.2.3)
     dotenv (3.2.0)
     dotenv-rails (3.2.0)
       dotenv (= 3.2.0)
@@ -126,6 +147,9 @@ GEM
     ffi (1.17.2-arm64-darwin)
     ffi (1.17.2-x86_64-linux-gnu)
     ffi (1.17.2-x86_64-linux-musl)
+    formtastic (5.0.0)
+      actionpack (>= 6.0.0)
+    formtastic_i18n (0.7.0)
     fugit (1.12.1)
       et-orbi (~> 1.4)
       raabro (~> 1.4)
@@ -143,11 +167,19 @@ GEM
       multi_json (~> 1.11)
       os (>= 0.9, < 2.0)
       signet (>= 0.16, < 2.a)
+    has_scope (0.9.0)
+      actionpack (>= 7.0)
+      activesupport (>= 7.0)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     image_processing (1.14.0)
       mini_magick (>= 4.9.5, < 6)
       ruby-vips (>= 2.0.17, < 3)
+    inherited_resources (1.14.0)
+      actionpack (>= 6.0)
+      has_scope (>= 0.6)
+      railties (>= 6.0)
+      responders (>= 2)
     io-console (0.8.1)
     irb (1.15.3)
       pp (>= 0.6.0)
@@ -156,6 +188,10 @@ GEM
     jbuilder (2.14.1)
       actionview (>= 7.0.0)
       activesupport (>= 7.0.0)
+    jquery-rails (4.6.1)
+      rails-dom-testing (>= 1, < 3)
+      railties (>= 4.2.0)
+      thor (>= 0.14, < 2.0)
     json (2.18.0)
     jwt (3.1.2)
       base64
@@ -170,6 +206,18 @@ GEM
       sshkit (>= 1.23.0, < 2.0)
       thor (~> 1.3)
       zeitwerk (>= 2.6.18, < 3.0)
+    kaminari (1.2.2)
+      activesupport (>= 4.1.0)
+      kaminari-actionview (= 1.2.2)
+      kaminari-activerecord (= 1.2.2)
+      kaminari-core (= 1.2.2)
+    kaminari-actionview (1.2.2)
+      actionview
+      kaminari-core (= 1.2.2)
+    kaminari-activerecord (1.2.2)
+      activerecord
+      kaminari-core (= 1.2.2)
+    kaminari-core (1.2.2)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     logger (1.7.0)
@@ -189,6 +237,9 @@ GEM
       logger
     mini_mime (1.1.5)
     minitest (5.27.0)
+    money (7.0.2)
+      bigdecimal
+      i18n (~> 1.9)
     msgpack (1.8.0)
     multi_json (1.18.0)
     net-http (0.9.1)
@@ -222,6 +273,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.18.10-x86_64-linux-musl)
       racc (~> 1.4)
+    orm_adapter (0.5.0)
     os (1.1.4)
     ostruct (0.6.3)
     parallel (1.27.0)
@@ -289,6 +341,10 @@ GEM
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.3.1)
+    ransack (4.4.1)
+      activerecord (>= 7.2)
+      activesupport (>= 7.2)
+      i18n
     rdoc (6.17.0)
       erb
       psych (>= 4.0.0)
@@ -296,6 +352,9 @@ GEM
     regexp_parser (2.11.3)
     reline (0.6.3)
       io-console (~> 0.5)
+    responders (3.2.0)
+      actionpack (>= 7.0)
+      railties (>= 7.0)
     rubocop (1.81.7)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
@@ -328,6 +387,17 @@ GEM
     ruby-vips (2.3.0)
       ffi (~> 1.12)
       logger
+    ruby2_keywords (0.0.5)
+    sass-rails (6.0.0)
+      sassc-rails (~> 2.1, >= 2.1.1)
+    sassc (2.4.0)
+      ffi (~> 1.9)
+    sassc-rails (2.1.2)
+      railties (>= 4.0.0)
+      sassc (>= 2.0)
+      sprockets (> 3.0)
+      sprockets-rails
+      tilt
     securerandom (0.4.1)
     signet (0.21.0)
       addressable (~> 2.8)
@@ -350,6 +420,14 @@ GEM
       fugit (~> 1.11)
       railties (>= 7.1)
       thor (>= 1.3.1)
+    sprockets (4.2.2)
+      concurrent-ruby (~> 1.0)
+      logger
+      rack (>= 2.2.4, < 4)
+    sprockets-rails (3.5.2)
+      actionpack (>= 6.1)
+      activesupport (>= 6.1)
+      sprockets (>= 3.0.0)
     sshkit (1.25.0)
       base64
       logger
@@ -363,6 +441,7 @@ GEM
     thruster (0.1.16-aarch64-linux)
     thruster (0.1.16-arm64-darwin)
     thruster (0.1.16-x86_64-linux)
+    tilt (2.6.1)
     timeout (0.5.0)
     tsort (0.2.0)
     tzinfo (2.0.6)
@@ -372,6 +451,8 @@ GEM
     unicode-emoji (4.1.0)
     uri (1.1.1)
     useragent (0.16.11)
+    warden (1.2.9)
+      rack (>= 2.0.9)
     websocket-driver (0.8.0)
       base64
       websocket-extensions (>= 0.1.0)
@@ -392,11 +473,14 @@ PLATFORMS
 
 DEPENDENCIES
   active_storage_validations (~> 3.0)
+  activeadmin (~> 3.4)
   bcrypt (~> 3.1.7)
   bootsnap
   brakeman
   bundler-audit
+  cancancan (~> 3.6)
   debug
+  devise (~> 4.9)
   dotenv-rails (~> 3.2)
   googleauth (~> 1.16)
   image_processing (~> 1.2)
@@ -405,11 +489,13 @@ DEPENDENCIES
   kamal
   mail (~> 2.9)
   mailtrap (~> 2.5)
+  money (~> 7.0)
   pg (~> 1.1)
   puma (>= 5.0)
   rack-cors
   rails (~> 8.1.1)
   rubocop-rails-omakase
+  sass-rails (~> 6.0)
   solid_cable
   solid_cache
   solid_queue

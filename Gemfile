@@ -30,3 +30,13 @@ gem "mailtrap", "~> 2.5"
 gem "googleauth", "~> 1.16"
 
 gem "active_storage_validations", "~> 3.0"
+
+gem "money", "~> 7.0"
+
+gem "cancancan", "~> 3.6"
+
+gem "sass-rails", "~> 6.0"
+
+gem "devise", "~> 4.9"
+gem "activeadmin", "~> 3.4"
+
