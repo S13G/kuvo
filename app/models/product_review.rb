@@ -9,11 +9,15 @@ class ProductReview < ApplicationRecord
   after_commit :touch_product
 
   def self.ransackable_attributes(auth_object = nil)
-    %w[created_at updated_at user_id product_id rating id]
+    %w[created_at updated_at user_id product_id rating id comment]
   end
 
   def self.ransackable_associations(auth_object = nil)
     %w[user product]
+  end
+
+  def to_s
+    "#{user.profile.full_name} - #{product.name}"
   end
 
   private

@@ -14,6 +14,15 @@ class User < ApplicationRecord
   validate :password_complexity
 
   after_create :create_profile, :send_otp_email
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[created_at email provider username is_verified id uid updated_at password_digest]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[profile user_otps blacklisted_tokens product_favorites favorited_products]
+  end
+
   def generate_secure_password(length = 12)
     chars = [
       ("A".."Z").to_a.sample,

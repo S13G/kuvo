@@ -1,6 +1,14 @@
 class UserOtp < ApplicationRecord
   belongs_to :user
 
+  def self.ransackable_attributes(auth_object = nil)
+    %w[user_id otp_code expires_at verified id created_at updated_at]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[user]
+  end
+
   def self.create_object(user, otp_code)
     create(
       user: user,

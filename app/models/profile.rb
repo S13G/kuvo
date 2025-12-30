@@ -17,6 +17,14 @@ class Profile < ApplicationRecord
 
   after_commit :process_avatar
 
+  def self.ransackable_attributes(auth_object = nil)
+    %w[created_at full_name date_of_birth gender phone_number id updated_at]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[user]
+  end
+
   def avatar_url
     if avatar.attached? == false
       "https://www.vecteezy.com/free-png/default-profile-picture"
