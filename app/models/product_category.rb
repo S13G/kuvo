@@ -11,4 +11,8 @@ class ProductCategory < ApplicationRecord
   def self.ransackable_associations(auth_object = nil)
     %w[product category]
   end
+
+  def to_s
+    [product&.name, category&.name].compact.join(" / ")
+  end
 end
