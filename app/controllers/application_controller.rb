@@ -40,7 +40,7 @@ class ApplicationController < ActionController::Base
   def jwt_auth_required?
     return false if devise_controller?
     return false if request.path.start_with?("/admin")
-    request.format.json?
+    request.format.json
   end
 
   def authenticate_request
