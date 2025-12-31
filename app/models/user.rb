@@ -2,6 +2,7 @@ class User < ApplicationRecord
   has_secure_password
 
   has_one :profile, dependent: :destroy, class_name: "Profile"
+  has_one :cart, dependent: :destroy
   has_many :user_otps, dependent: :destroy
   has_many :blacklisted_tokens, dependent: :destroy
   has_many :product_favorites, dependent: :destroy
@@ -13,7 +14,7 @@ class User < ApplicationRecord
   validates :password, length: { minimum: 8 }, presence: true
   validate :password_complexity
 
-  after_create :create_profile, :send_otp_email
+  after_create :create_profile, :send_otp_email, :create_cart
 
   def self.ransackable_attributes(auth_object = nil)
     %w[created_at email provider username is_verified id uid updated_at password_digest]
@@ -50,7 +51,7 @@ class User < ApplicationRecord
       username: username,
       created_at: created_at,
       updated_at: updated_at,
-      profile_exist: profile.present?
+      profile_exist: profile.present?,
     }
   end
 
@@ -68,7 +69,7 @@ class User < ApplicationRecord
     product_favorites.where(product: product).destroy_all
   end
 
-  def bookmarked?(product)
+  def favorited?(product)
     favorited_products.exists?(product.id)
   end
 

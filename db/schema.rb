@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_28_202729) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_31_010908) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
   enable_extension "pgcrypto"
 
   create_table "active_admin_comments", force: :cascade do |t|
@@ -81,6 +82,28 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_28_202729) do
     t.index ["user_id"], name: "index_blacklisted_tokens_on_user_id"
   end
 
+  create_table "cart_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "cart_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "price_cents", default: 0
+    t.uuid "product_id", null: false
+    t.uuid "product_variant_id", null: false
+    t.integer "quantity", default: 1
+    t.datetime "updated_at", null: false
+    t.index ["cart_id"], name: "index_cart_items_on_cart_id"
+    t.index ["product_id"], name: "index_cart_items_on_product_id"
+    t.index ["product_variant_id"], name: "index_cart_items_on_product_variant_id"
+  end
+
+  create_table "carts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "payment_status", default: "pending"
+    t.integer "total_price_cents", default: 0
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["user_id"], name: "index_carts_on_user_id"
+  end
+
   create_table "categories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "description"
@@ -138,7 +161,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_28_202729) do
 
   create_table "product_images", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.string "image_url", null: false
     t.boolean "is_main", default: false
     t.uuid "product_id", null: false
     t.datetime "updated_at", null: false
@@ -166,9 +188,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_28_202729) do
 
   create_table "product_variants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.uuid "product_color_id", null: false
+    t.uuid "product_color_id"
     t.uuid "product_id", null: false
-    t.uuid "product_size_id", null: false
+    t.uuid "product_size_id"
     t.integer "stock", default: 0
     t.datetime "updated_at", null: false
     t.index ["product_color_id"], name: "index_product_variants_on_product_color_id"
@@ -318,6 +340,14 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_28_202729) do
     t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
   end
 
+  create_table "suggestions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "frequency"
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_suggestions_on_name", opclass: :gin_trgm_ops, using: :gin
+  end
+
   create_table "user_otps", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "expires_at"
@@ -346,6 +376,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_28_202729) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "blacklisted_tokens", "users"
+  add_foreign_key "cart_items", "carts", name: "fk_cart_items_carts"
+  add_foreign_key "cart_items", "product_variants", name: "fk_cart_items_product_variants"
+  add_foreign_key "cart_items", "products", name: "fk_cart_items_products"
+  add_foreign_key "carts", "users", name: "fk_carts_users"
   add_foreign_key "product_categories", "categories"
   add_foreign_key "product_categories", "products"
   add_foreign_key "product_favorites", "products"

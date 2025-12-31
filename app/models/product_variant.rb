@@ -5,11 +5,15 @@ class ProductVariant < ApplicationRecord
   belongs_to :product_size, optional: true
   belongs_to :product_color, optional: true
 
+  attr_accessor :size_name, :size_code, :color_name, :color_hex
+
   validates :stock, numericality: { greater_than_or_equal_to: 0 }
   validates :product_id, uniqueness: {
     scope: [:product_size_id, :product_color_id],
     message: "Variant already exists"
   }
+
+  before_validation :resolve_size_and_color
 
   def self.ransackable_attributes(auth_object = nil)
     %w[created_at id product_id product_size_id product_color_id stock updated_at]
@@ -19,11 +23,41 @@ class ProductVariant < ApplicationRecord
     %w[product product_size product_color]
   end
 
-  def label
-    [product_size.name, product_color.hex_code].compact.join(" / ")
+  def to_s
+    [
+      product_size&.name,
+      product_color&.name
+    ].compact.join(" / ")
   end
 
-  def in_stock?
-    stock > 0
+  def out_of_stock?
+    stock <= 0
+  end
+
+  def update_stock(quantity)
+    self.stock -= quantity
+    save
+  end
+
+  private
+
+  def resolve_size_and_color
+    if size_name.present? && size_code.present?
+      self.product_size =
+        ProductSize.find_or_create_by!(
+          code: size_code.strip.upcase
+        ) do |ps|
+          ps.name = size_name.strip.titleize
+        end
+    end
+
+    if color_name.present?
+      self.product_color =
+        ProductColor.find_or_create_by!(
+          name: color_name.strip.titleize
+        ) do |pc|
+          pc.hex_code = color_hex.presence
+        end
+    end
   end
 end
