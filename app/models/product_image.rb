@@ -3,9 +3,9 @@
 class ProductImage < ApplicationRecord
   belongs_to :product
 
-  validates :image_url, presence: true
+  has_one_attached :image_file
 
-  scope :main, -> { where(is_main: true) }
+  validates :image_file, presence: true
 
   before_save :ensure_single_main_image
 
@@ -15,6 +15,10 @@ class ProductImage < ApplicationRecord
 
   def self.ransackable_associations(auth_object = nil)
     %w[product]
+  end
+
+  def to_s
+    product.name if image_file.attached?
   end
 
   private
