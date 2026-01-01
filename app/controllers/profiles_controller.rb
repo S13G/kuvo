@@ -2,7 +2,7 @@
 
 class ProfilesController < ApplicationController
   def show
-    user_profile = @current_user.profile
+    user_profile = current_user.profile
     render_success(
       message: "Profile retrieved successfully",
       data: user_profile.as_json
@@ -10,7 +10,7 @@ class ProfilesController < ApplicationController
   end
 
   def update
-    user_profile = @current_user.profile
+    user_profile = current_user.profile
 
     if params[:avatar].present?
       user_profile.avatar.attach(params[:avatar])

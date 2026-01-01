@@ -133,7 +133,7 @@ class SessionsController < ApplicationController
     validator.verify(
       id_token,
       aud: ENV["GOOGLE_CLIENT_ID"],
-      iss: ["https://accounts.google.com", "accounts.google.com"]
+      iss: "https://accounts.google.com"
     )
   rescue Google::Auth::IDTokens::VerificationError => e
     Rails.logger.error("Google ID token verification failed: #{e.message}")

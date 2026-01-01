@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_31_010908) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_01_132443) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -97,7 +97,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_31_010908) do
 
   create_table "carts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.string "payment_status", default: "pending"
     t.integer "total_price_cents", default: 0
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
@@ -130,6 +129,34 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_31_010908) do
     t.datetime "starts_at"
     t.datetime "updated_at", null: false
     t.index ["singleton_guard"], name: "index_discounts_on_singleton_guard", unique: true
+  end
+
+  create_table "order_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.uuid "order_id", null: false
+    t.uuid "product_id", null: false
+    t.uuid "product_variant_id"
+    t.integer "quantity", default: 1, null: false
+    t.integer "unit_price_cents", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_order_items_on_order_id"
+    t.index ["product_id"], name: "index_order_items_on_product_id"
+    t.index ["product_variant_id"], name: "index_order_items_on_product_variant_id"
+  end
+
+  create_table "orders", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.uuid "shipping_address_id", null: false
+    t.integer "shipping_fee_cents", default: 0, null: false
+    t.string "status", default: "pending", null: false
+    t.jsonb "status_history", default: [], null: false
+    t.integer "total_amount_cents", default: 0, null: false
+    t.string "tracking_number"
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["shipping_address_id"], name: "index_orders_on_shipping_address_id"
+    t.index ["tracking_number"], name: "index_orders_on_tracking_number", unique: true
+    t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
   create_table "product_categories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -217,6 +244,26 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_31_010908) do
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
     t.index ["user_id"], name: "index_profiles_on_user_id", unique: true
+  end
+
+  create_table "shipping_addresses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "address"
+    t.string "address_tag", null: false
+    t.datetime "created_at", null: false
+    t.boolean "is_default", default: false
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["address_tag"], name: "index_shipping_addresses_on_address_tag", unique: true
+    t.index ["user_id", "is_default"], name: "index_shipping_addresses_on_user_id_and_is_default", unique: true, where: "(is_default = true)"
+    t.index ["user_id"], name: "index_shipping_addresses_on_user_id"
+  end
+
+  create_table "shipping_fees", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.integer "amount_cents", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.boolean "singleton_guard", default: true, null: false
+    t.datetime "updated_at", null: false
+    t.index ["singleton_guard"], name: "index_shipping_fees_on_singleton_guard", unique: true
   end
 
   create_table "solid_queue_blocked_executions", force: :cascade do |t|
@@ -380,6 +427,11 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_31_010908) do
   add_foreign_key "cart_items", "product_variants", name: "fk_cart_items_product_variants"
   add_foreign_key "cart_items", "products", name: "fk_cart_items_products"
   add_foreign_key "carts", "users", name: "fk_carts_users"
+  add_foreign_key "order_items", "orders", name: "fk_order_items_orders"
+  add_foreign_key "order_items", "product_variants", name: "fk_order_items_product_variants"
+  add_foreign_key "order_items", "products", name: "fk_order_items_products"
+  add_foreign_key "orders", "shipping_addresses", name: "fk_orders_shipping_address"
+  add_foreign_key "orders", "users", name: "fk_orders_users"
   add_foreign_key "product_categories", "categories"
   add_foreign_key "product_categories", "products"
   add_foreign_key "product_favorites", "products"
@@ -391,6 +443,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_31_010908) do
   add_foreign_key "product_variants", "product_sizes"
   add_foreign_key "product_variants", "products"
   add_foreign_key "profiles", "users"
+  add_foreign_key "shipping_addresses", "users", name: "fk_shipping_addresses"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

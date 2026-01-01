@@ -7,6 +7,9 @@ class User < ApplicationRecord
   has_many :blacklisted_tokens, dependent: :destroy
   has_many :product_favorites, dependent: :destroy
   has_many :favorited_products, through: :product_favorites, source: :product
+  has_many :shipping_addresses
+  has_many :product_reviews
+  has_many :orders
 
   validates :email, presence: true, uniqueness: true
   validates :username, presence: true, uniqueness: true
@@ -21,7 +24,7 @@ class User < ApplicationRecord
   end
 
   def self.ransackable_associations(auth_object = nil)
-    %w[profile user_otps blacklisted_tokens product_favorites favorited_products]
+    %w[profile user_otps blacklisted_tokens product_favorites favorited_products shipping_addresses]
   end
 
   def generate_secure_password(length = 12)
@@ -51,7 +54,7 @@ class User < ApplicationRecord
       username: username,
       created_at: created_at,
       updated_at: updated_at,
-      profile_exist: profile.present?,
+      profile_exist: profile.present?
     }
   end
 
@@ -71,6 +74,14 @@ class User < ApplicationRecord
 
   def favorited?(product)
     favorited_products.exists?(product.id)
+  end
+
+  def favorite_products
+    favorited_products.includes(:product_reviews, :product_variants, :product_images).as_json
+  end
+
+  def all_shipping_addresses
+    shipping_addresses.as_json
   end
 
   private

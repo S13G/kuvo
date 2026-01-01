@@ -107,6 +107,14 @@ class UsersController < ApplicationController
     end
   end
 
+  def retrieve_favorite_products
+    favorite_products = @current_user&.favorited_products
+    render_success(
+      message: "Favorite products retrieved successfully",
+      data: favorite_products.as_json
+    )
+  end
+
   private
 
   def find_user(email)

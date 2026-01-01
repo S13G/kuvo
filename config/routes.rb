@@ -10,6 +10,7 @@ Rails.application.routes.draw do
 
   resources :users, only: [] do
     collection do
+      get :retrieve_favorite_products
       post :create
       post :verify_otp
       post :request_otp
@@ -24,8 +25,8 @@ Rails.application.routes.draw do
     collection do
       get :categories
       get :filter_type
-      post "/favorites/add", to: "products#add_product_to_users_favorites"
-      post "/favorites/remove", to: "products#remove_product_from_users_favorites"
+      post ":id/favorites/add", to: "products#add_product_to_favorites"
+      post ":id/favorites/remove", to: "products#remove_product_from_favorites"
     end
   end
 
@@ -34,7 +35,21 @@ Rails.application.routes.draw do
   resources :carts, only: [:show] do
     collection do
       post :add_to_cart
-      post :remove_from_cart
+      post :reduce_item
+      post :remove_item
+    end
+  end
+
+  resources :shipping_addresses
+
+  resources :product_reviews, only: [:index, :create, :update]
+
+  resources :orders, only: [:index, :show, :create] do
+    collection do
+      get "cancelled", to: "orders#cancelled_orders"
+      get "completed", to: "orders#completed_orders"
+      post :cancel
+      get ":id/tracking_status", to: "orders#tracking_status"
     end
   end
 end
