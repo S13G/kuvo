@@ -1,19 +1,15 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  email: MyString
-  full_name: MyString
-  username: MyString
-  phone_number: MyString
-  gender: MyString
-  date_of_birth: 2025-12-13
-  password_digest: MyString
+  id: <%= SecureRandom.uuid %>
+  email: one@example.com
+  username: userone
+  password_digest: <%= BCrypt::Password.create('Secret123!') %>
+  is_verified: true
 
 two:
-  email: MyString
-  full_name: MyString
-  username: MyString
-  phone_number: MyString
-  gender: MyString
-  date_of_birth: 2025-12-13
-  password_digest: MyString
+  id: <%= SecureRandom.uuid %>
+  email: two@example.com
+  username: usertwo
+  password_digest: <%= BCrypt::Password.create('Secret123!') %>
+  is_verified: true

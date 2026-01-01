@@ -1,6 +1,8 @@
 class ApplicationController < ActionController::Base
   before_action :authenticate_request, if: :jwt_auth_required?
 
+  helper_method :current_user
+
   def render_success(message: "", data: nil, status_code: 200)
     render json: {
       status: "success",
@@ -36,6 +38,10 @@ class ApplicationController < ActionController::Base
   end
 
   protected
+
+  def current_user
+    @current_user
+  end
 
   def jwt_auth_required?
     return false if devise_controller?
