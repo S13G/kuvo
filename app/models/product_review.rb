@@ -8,6 +8,10 @@ class ProductReview < ApplicationRecord
 
   after_commit :touch_product
 
+  def self.all_reviews(product_id)
+    where(product_id: product_id)
+  end
+
   def self.ransackable_attributes(auth_object = nil)
     %w[created_at updated_at user_id product_id rating id comment]
   end
@@ -20,13 +24,28 @@ class ProductReview < ApplicationRecord
     "#{user.profile.full_name} - #{product.name}"
   end
 
+  def as_json(options = {})
+    {
+      id: id,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        full_name: user.profile.full_name,
+        profile_picture: user.profile.avatar_url
+      },
+      product: product.as_json,
+      product_variant: product.product_variants.map(&:as_json),
+      rating: rating,
+      comment: comment,
+      created_at: created_at,
+      updated_at: updated_at
+    }
+  end
+
   private
 
-  # When a ProductReview is created or updated, update the `updated_at`
-  # timestamp of the associated Product. This ensures that the Product's
-  # timestamp is updated when a review is added or modified, which can
-  # affect the Product's ordering and sorting.
   def touch_product
-    product.touch
+    product.touch # Updates product updated_at timestamp fields when a review is made
   end
 end

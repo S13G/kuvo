@@ -14,6 +14,7 @@ class ProductVariant < ApplicationRecord
   }
 
   before_validation :resolve_size_and_color
+  after_commit :sync_product_activity
 
   def self.ransackable_attributes(auth_object = nil)
     %w[created_at id product_id product_size_id product_color_id stock updated_at]
@@ -30,13 +31,28 @@ class ProductVariant < ApplicationRecord
     ].compact.join(" / ")
   end
 
-  def out_of_stock?
-    stock <= 0
+  def update_stock(quantity)
+    with_lock do
+      self.stock -= quantity
+      save!
+    end
   end
 
-  def update_stock(quantity)
-    self.stock -= quantity
-    save
+  private
+
+  def sync_product_activity
+    product.update_activity_status!
+  end
+
+  def as_json(options = nil)
+    {
+      id: id,
+      stock: stock,
+      size_name: product_size&.name,
+      size_code: product_size&.code,
+      color_name: product_color&.name,
+      color_hex: product_color&.hex_code
+    }
   end
 
   private
