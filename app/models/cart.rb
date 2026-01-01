@@ -6,12 +6,6 @@ class Cart < ApplicationRecord
   belongs_to :user
   has_many :cart_items, dependent: :destroy
 
-  enum :payment_status, {
-    pending: "pending",
-    paid: "paid",
-    cancelled: "cancelled"
-  }
-
   validates :user, presence: true
 
   def add_item!(product_id:, product_variant_id:, quantity:)
@@ -36,19 +30,23 @@ class Cart < ApplicationRecord
     cart_item.save!
   end
 
-  def remove_item!(cart_item_id:, quantity:)
+  def reduce_item!(cart_item_id:, quantity:)
     cart_item = cart_items.find_by(id: cart_item_id)
-    if cart_item.nil?
-      raise CartError, "Cart item not found"
-    end
+    raise CartError, "Cart item not found" if cart_item.nil?
 
     quantity = quantity.to_i
-
     if quantity > 0 && cart_item.quantity > quantity
       cart_item.update!(quantity: cart_item.quantity - quantity)
     else
       cart_item.destroy!
     end
+  end
+
+  def remove_item!(cart_item_id:)
+    cart_item = cart_items.find_by(id: cart_item_id)
+    raise CartError, "Cart item not found" if cart_item.nil?
+
+    cart_item.destroy!
   end
 
   def total_cart_amount_in_cents
@@ -58,7 +56,6 @@ class Cart < ApplicationRecord
   def as_json(_options = nil)
     {
       id: id,
-      payment_status: payment_status,
       total_cart_amount_in_cents: total_cart_amount_in_cents,
       cart_items: cart_items.as_json
     }

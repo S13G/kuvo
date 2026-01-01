@@ -18,15 +18,17 @@ class CartItem < ApplicationRecord
   def as_json(_options = nil)
     {
       id: id,
+      quantity: quantity,
+      item_unit_price_cents: item_unit_price_cents,
+      item_total_price_cents: item_total_price_cents,
       product: {
         id: product_id,
         name: product.name,
         product_variant_id: product_variant_id,
+        size: product_variant&.product_size&.name,
+        color: product_variant&.product_color&.name,
         stock: product_variant.stock
-      },
-      quantity: quantity,
-      item_unit_price_cents: item_unit_price_cents,
-      item_total_price_cents: item_total_price_cents
+      }
     }
   end
 end
