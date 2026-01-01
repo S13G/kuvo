@@ -1,0 +1,13 @@
+one:
+  name: "Product One"
+  description: "Description one"
+  price_cents: 1000
+  created_by: "admin"
+  is_active: true
+
+two:
+  name: "Product Two"
+  description: "Description two"
+  price_cents: 2000
+  created_by: "admin"
+  is_active: true

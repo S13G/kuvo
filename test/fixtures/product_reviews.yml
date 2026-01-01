@@ -1,0 +1,13 @@
+one:
+  id: <%= SecureRandom.uuid %>
+  user: one
+  product: one
+  rating: 5
+  comment: "Great product!"
+
+two:
+  id: <%= SecureRandom.uuid %>
+  user: two
+  product: two
+  rating: 4
+  comment: "Good product."
