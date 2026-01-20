@@ -14,7 +14,11 @@ module ActiveSupport
     # Add more helper methods to be used by all tests here...
     def auth_headers(user)
       token = JwtService.generate_access_token(user.id)
-      { "Authorization" => "Bearer #{token}" }
+      { "Authorization" => "Bearer #{token}", "Accept" => "application/json" }
+    end
+
+    def json_response
+      ::JSON.parse(response.body)
     end
   end
 end

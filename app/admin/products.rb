@@ -15,8 +15,9 @@ ActiveAdmin.register Product do
 
     selectable_column
     column :main_image do |product|
-      if product.main_image&.attached?
-        image_tag(product.main_image.variant(resize_to_limit: [100, 100]))
+      main_image = product.product_images.find_by(is_main: true)&.image_file
+      if main_image&.attached?
+        image_tag(main_image.variant(resize_to_limit: [100, 100]))
       end
     end
     column :name
@@ -107,23 +108,28 @@ ActiveAdmin.register Product do
                 collection: ProductSize.all.map { |ps| [ps.label, ps.id] },
                 include_blank: "Select existing size"
 
-        v.input :size_name, placeholder: "New size name (e.g. Small)"
-        v.input :size_code, placeholder: "New size code (e.g. S OR 34)"
+        v.input :size_name,
+                hint: "Only add a new size name if it doesn't exist in the dropdown above"
+        v.input :size_code,
+                hint: "Only add a new size code if it doesn't exist in the dropdown above"
 
         v.input :product_color,
                 as: :select,
                 collection: ProductColor.all.map { |pc| [pc.display_name, pc.id] },
                 include_blank: "Select existing color"
 
-        v.input :color_name, placeholder: "New color name (e.g. Red)"
-        v.input :color_hex, placeholder: "#FF0000"
+        v.input :color_name,
+                hint: "Only add a new color name if it doesn't exist in the dropdown above"
+        v.input :color_hex,
+                hint: "Only add a new color hex code if it doesn't exist in the dropdown above"
 
         v.input :stock
       end
     end
 
     f.has_many :product_images, allow_destroy: true, heading: "Images", new_record: "Add Image" do |i|
-      i.input :image_file, as: :file, label: "Upload Image"
+      i.input :image_file, as: :file, label: "Upload Image",
+              hint: i.object.image_file.attached? ? image_tag(i.object.image_file.variant(resize_to_limit: [100, 100])) : content_tag(:span, "No image uploaded yet")
       i.input :is_main, label: "Main Image"
     end
 

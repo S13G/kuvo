@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Order do
-  permit_params :status, :tracking_number
+  permit_params :user_id, :shipping_address_id, :total_amount_cents, :shipping_fee_cents, :status, :tracking_number
 
   index do
     selectable_column
@@ -13,6 +13,7 @@ ActiveAdmin.register Order do
     column :status
     column :tracking_number
     column :created_at
+    column :updated_at
     actions
   end
 
@@ -24,7 +25,9 @@ ActiveAdmin.register Order do
       row :shipping_fee_cents
       row :status
       row :tracking_number
+      row :status_history
       row :created_at
+      row :updated_at
     end
 
     panel "Order Items" do
@@ -36,13 +39,5 @@ ActiveAdmin.register Order do
         column :total_price_cents
       end
     end
-  end
-
-  form do |f|
-    f.inputs do
-      f.input :status, as: :select, collection: Order.statuses.keys
-      f.input :tracking_number
-    end
-    f.actions
   end
 end

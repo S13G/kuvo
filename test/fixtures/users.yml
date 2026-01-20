@@ -1,14 +1,12 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  id: <%= SecureRandom.uuid %>
   email: one@example.com
   username: userone
   password_digest: <%= BCrypt::Password.create('Secret123!') %>
   is_verified: true
 
 two:
-  id: <%= SecureRandom.uuid %>
   email: two@example.com
   username: usertwo
   password_digest: <%= BCrypt::Password.create('Secret123!') %>

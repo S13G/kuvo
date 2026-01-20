@@ -1,6 +1,6 @@
 ActiveAdmin.register Discount do
   permit_params :name, :percentage_off, :active, :notes, :starts_at, :ends_at
-  actions :all, except: [:new, :create] if CurrencySetting.exists?
+  actions :all, except: [:new, :create] if Discount.exists?
   config.filters = false
 
   index do

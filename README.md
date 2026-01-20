@@ -44,10 +44,8 @@ fulfillment.
 ### Prerequisites
 
 - Ruby 3.x
-- Rails 7.x
+- Rails 8.1
 - PostgreSQL 13+
-- Node.js 16+
-- Yarn
 
 ### Installation
 

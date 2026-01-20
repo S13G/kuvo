@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_01_132443) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_11_123218) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -197,10 +197,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_01_132443) do
   create_table "product_reviews", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.text "comment"
     t.datetime "created_at", null: false
+    t.boolean "is_blocked", default: false
     t.uuid "product_id", null: false
     t.integer "rating", null: false
+    t.string "reason"
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
+    t.index ["is_blocked"], name: "index_product_reviews_on_is_blocked"
     t.index ["product_id"], name: "index_product_reviews_on_product_id"
     t.index ["user_id", "product_id"], name: "index_product_reviews_on_user_and_product", unique: true
     t.index ["user_id"], name: "index_product_reviews_on_user_id"
