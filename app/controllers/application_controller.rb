@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::Base
+  skip_forgery_protection
   before_action :authenticate_request, if: :jwt_auth_required?
 
   helper_method :current_user
@@ -44,9 +45,17 @@ class ApplicationController < ActionController::Base
   end
 
   def jwt_auth_required?
-    return false if devise_controller?
-    return false if request.path.start_with?("/admin")
-    request.format.json
+    Rails.logger.info "jwt_auth_required? called - controller: #{controller_name}, action: #{action_name}, path: #{request.path}, format: #{request.format}, params: #{params.inspect}"
+
+    if devise_controller?
+      return false
+    end
+
+    if request.path.start_with?("/admin")
+      return false
+    end
+
+    true
   end
 
   def authenticate_request

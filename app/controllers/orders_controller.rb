@@ -58,7 +58,7 @@ class OrdersController < ApplicationController
       return render_error(message: "Cart is empty")
     end
 
-    shipping_address = @current_user.shipping_addresses.find_by(id: params[:shipping_address_id])
+    shipping_address = current_user.shipping_addresses.find_by(id: params[:shipping_address_id])
     if shipping_address.nil?
       return render_error(message: "Shipping address not found")
     end
@@ -66,7 +66,7 @@ class OrdersController < ApplicationController
     order = nil
     ActiveRecord::Base.transaction do
       shipping_fee = ShippingFee.instance.amount_cents
-      order = @current_user.orders.create!(
+      order = current_user.orders.create!(
         shipping_address: shipping_address,
         shipping_fee_cents: shipping_fee,
         total_amount_cents: cart.total_cart_amount_in_cents,
@@ -145,6 +145,6 @@ class OrdersController < ApplicationController
   private
 
   def find_order(id)
-    current_user.orders.find_by(id)
+    current_user.orders.find_by(id: id)
   end
 end

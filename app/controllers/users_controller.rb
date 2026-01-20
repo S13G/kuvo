@@ -5,7 +5,6 @@ class UsersController < ApplicationController
     user = User.new(user_params)
 
     if user.save
-      user.send_otp_email
       render_success(
         message: "Account registered successfully. Please check your email for OTP.",
         data: { user: user.as_json },
@@ -36,7 +35,7 @@ class UsersController < ApplicationController
 
   def verify_user
     email = params[:email]
-    otp_code = params[:otp_code]
+    otp_code = params[:otp_code].to_s
     user = User.find_by(email: email)
     if user.nil?
       return render_error(message: "User not found", status_code: 404)
@@ -46,14 +45,14 @@ class UsersController < ApplicationController
       return render_success(message: "User already verified")
     end
 
-    otp = user.user_otps.last
+    otp = user.user_otps.where(verified: false).last
 
     if otp && otp.otp_code == otp_code && otp.not_expired?
       otp.update(verified: true)
-      user.update(is_verified: true)
+      user.update(is_verified: true, last_login_at: Time.current)
 
       # Give tokens to log user in
-      access_token, refresh_token = JwtService.generate_tokens(user_id: user.id)
+      access_token, refresh_token = JwtService.generate_tokens(user.id)
       render_success(
         message: "User verified successfully",
         data: {
@@ -71,13 +70,13 @@ class UsersController < ApplicationController
 
   def verify_otp
     email = params[:email]
-    otp_code = params[:otp_code]
+    otp_code = params[:otp_code].to_s
     user = User.find_by(email: email)
     if user.nil?
       return render_error(message: "User not found", status_code: 404)
     end
 
-    otp = user.user_otps.last
+    otp = user.user_otps.where(verified: false).last
 
     if otp && otp.otp_code == otp_code && otp.not_expired?
       otp.update(verified: true)
@@ -108,10 +107,19 @@ class UsersController < ApplicationController
   end
 
   def retrieve_favorite_products
-    favorite_products = @current_user&.favorited_products
+    per_page = (params[:per_page] || 20).to_i
+    page = (params[:page] || 1).to_i
+
+    paginated_list = current_user.favorited_products.page(page).per(per_page)
     render_success(
       message: "Favorite products retrieved successfully",
-      data: favorite_products.as_json
+      data: {
+        page: page,
+        per_page: per_page,
+        total_pages: paginated_list.total_pages,
+        total_count: paginated_list.total_count,
+        paginated_list: paginated_list
+      }
     )
   end
 

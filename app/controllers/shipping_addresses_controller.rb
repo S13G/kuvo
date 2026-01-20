@@ -2,7 +2,8 @@
 
 class ShippingAddressesController < ApplicationController
   def index
-    shipping_addresses = current_user.all_shipping_addresses
+    shipping_addresses = current_user.shipping_addresses.ordered
+
     render_success(
       message: "All addresses retrieved successfully",
       data: shipping_addresses.as_json
@@ -73,7 +74,6 @@ class ShippingAddressesController < ApplicationController
     shipping_address.destroy
     render_success(
       message: "Address deleted successfully",
-      status_code: 204
     )
   end
 

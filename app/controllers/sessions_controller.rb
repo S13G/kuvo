@@ -53,7 +53,7 @@ class SessionsController < ApplicationController
     if user && user.authenticate(password)
       user.update!(last_login_at: Time.current)
 
-      access_token, refresh_token = JwtService.generate_tokens(user_id: user.id)
+      access_token, refresh_token = JwtService.generate_tokens(user.id)
       render_success(
         message: "Signed in successfully",
         data: {
@@ -85,13 +85,7 @@ class SessionsController < ApplicationController
         return render_error(message: "Not a refresh token", status_code: 401)
       end
 
-      user_id = nil
-      if decoded_payload[:user_id].is_a?(Hash)
-        user_id = decoded_payload[:user_id][:user_id]
-      else
-        user_id = decoded_payload[:user_id]
-      end
-
+      user_id = decoded_payload[:user_id]
       user = User.find_by(id: user_id)
       if user.nil?
         return render_error(message: "User not found", status_code: 401)

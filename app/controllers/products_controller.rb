@@ -12,7 +12,7 @@ class ProductsController < ApplicationController
     per_page = (params[:per_page] || 20).to_i
     page = (params[:page] || 1).to_i
 
-    query = Product.joins(:categories).distinct
+    query = Product.active.joins(:categories).distinct
 
     if search.present?
       Suggestion.record_search(search) # record the search term
@@ -32,7 +32,7 @@ class ProductsController < ApplicationController
                               .per(per_page)
 
     render_success(
-      message: "",
+      message: "All products retrieved",
       data: {
         page: page,
         per_page: per_page,
@@ -71,7 +71,6 @@ class ProductsController < ApplicationController
           .select("products.*, AVG(product_reviews.rating) AS avg_rating")
           .group("products.id")
           .order("avg_rating DESC")
-
       else
         return render_error(message: "Invalid filter type")
       end
@@ -79,6 +78,7 @@ class ProductsController < ApplicationController
     paginated_products = products.page(page).per(per_page)
 
     render_success(
+      message: "All products retrieved",
       data: {
         page: page,
         per_page: per_page,
@@ -103,24 +103,50 @@ class ProductsController < ApplicationController
   end
 
   def add_product_to_favorites
-    product = Product.find(params[:product_id])
-    current_user.add_to_favorites!(product)
+    product = Product.find(params[:id])
 
-    render_success(message: "Product added to favorites")
+    if current_user.favorited_products.include?(product)
+      return render_error(
+        message: "Product already in favorites",
+        errors: ["This product is already in your favorites list"],
+        status_code: 409
+      )
+    end
+
+    current_user.add_to_favorites!(product)
+    render_success(
+      message: "Product added to favorites",
+    )
 
   rescue ActiveRecord::RecordNotFound => e
-    render_error(message: e.message)
+    render_error(
+      message: "Product not found",
+      errors: ["The requested product could not be found"],
+      status_code: 404
+    )
 
   rescue ActiveRecord::RecordInvalid => e
-    render_error(message: e.message)
+    render_error(
+      message: "Error adding product to favorites",
+      errors: e.record&.errors&.full_messages,
+      status_code: 422
+    )
   end
 
   def remove_product_from_favorites
-    current_user.remove_from_favorites!(product_id: params[:id])
+    product = Product.find(params[:product_id])
+    current_user.remove_from_favorites!(product_id: product.id)
 
     render_success(message: "Product removed from favorites")
 
   rescue ActiveRecord::RecordNotFound => e
-    render_error(message: e.message)
+    render_error(message: "Not found")
+
+  rescue ActiveRecord::RecordInvalid => e
+    render_error(
+      message: "Error adding product to favorites",
+      errors: e.record&.errors&.full_messages,
+      status_code: 422
+    )
   end
 end

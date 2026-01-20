@@ -1,9 +1,25 @@
 class ProductReviewsController < ApplicationController
   def index
-    reviews = current_user.product_reviews.includes(:product)
+    per_page = (params[:per_page] || 20).to_i
+    page = (params[:page] || 1).to_i
+
+    reviews = current_user
+                .product_reviews
+                .not_blocked
+                .eager_load(:product)
+                .where(products: { is_active: true })
+
+    paginated_reviews = reviews.page(page).per(per_page)
+
     render_success(
       message: "Reviews retrieved successfully",
-      data: reviews.as_json(include: :product)
+      data: {
+        page: page,
+        per_page: per_page,
+        total_pages: paginated_reviews.total_pages,
+        total_count: paginated_reviews.total_count,
+        paginated_reviews: paginated_reviews.map(&:as_index_json)
+      }
     )
   end
 
@@ -13,7 +29,7 @@ class ProductReviewsController < ApplicationController
     if review.save
       render_success(
         message: "Review created successfully",
-        data: review.as_json(include: :product),
+        data: review.as_index_json,
         status_code: 201
       )
     else
@@ -22,6 +38,12 @@ class ProductReviewsController < ApplicationController
         errors: review.errors.full_messages
       )
     end
+
+  rescue ActiveRecord::RecordNotUnique => e
+    render_error(
+      message: "You already made a review for this product",
+      status_code: 409
+    )
   end
 
   def update
@@ -31,10 +53,10 @@ class ProductReviewsController < ApplicationController
       return render_error(message: "Review not found", status_code: 404)
     end
 
-    if review.update(review_params)
+    if review.update(params.permit(:rating, :comment))
       render_success(
         message: "Review updated successfully",
-        data: review.as_json(include: :product)
+        data: review.as_index_json
       )
     else
       render_error(
