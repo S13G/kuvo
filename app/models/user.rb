@@ -14,10 +14,14 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true
   validates :username, presence: true, uniqueness: true
 
-  validates :password, length: { minimum: 8 }, presence: true
+  validates :password, length: { minimum: 8 }, presence: true, if: :password_required?
   validate :password_complexity
 
   after_create :create_profile, :send_otp_email, :create_cart
+
+  def password_required?
+    password_digest.blank? || password.present?
+  end
 
   def self.ransackable_attributes(auth_object = nil)
     %w[created_at email provider username is_verified id uid updated_at password_digest]
@@ -69,7 +73,7 @@ class User < ApplicationRecord
   end
 
   def unbookmark(product)
-    product_favorites.where(product: product).destroy_all
+    product_favorites.where(product_id: product.id).destroy_all
   end
 
   def favorited?(product)
@@ -77,7 +81,16 @@ class User < ApplicationRecord
   end
 
   def favorite_products
-    favorited_products.includes(:product_reviews, :product_variants, :product_images).as_json
+    favorited_products.includes(:product_reviews, :product_variants, :product_images).map { |p| p.as_json }
+  end
+
+  def add_to_favorites!(product)
+    bookmark(product)
+  end
+
+  def remove_from_favorites!(product_id:)
+    product = Product.find(product_id)
+    unbookmark(product)
   end
 
   def all_shipping_addresses

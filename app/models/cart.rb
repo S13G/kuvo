@@ -3,42 +3,49 @@
 class Cart < ApplicationRecord
   class CartError < StandardError; end
 
-  belongs_to :user
+  belongs_to :user, dependent: :destroy
   has_many :cart_items, dependent: :destroy
 
   validates :user, presence: true
 
   def add_item!(product_id:, product_variant_id:, quantity:)
     quantity = quantity.to_i
-    if quantity <= 0
-      raise CartError, "Invalid quantity"
-    end
 
     product = Product.find_by(id: product_id)
     if product.nil?
       raise CartError, "Product not found"
     end
 
-    variant = resolve_variant(product, product_variant_id, quantity)
+    if product.product_variants.any? && product_variant_id.blank?
+      raise CartError, "Variant is required for this product"
+    end
+
+    if product.total_stock < quantity
+      raise CartError, "Product out of stock"
+    end
+
+    if product_variant_id.present?
+      variant = resolve_variant(product, product_variant_id, quantity)
+    end
 
     cart_item = cart_items.find_or_initialize_by(
       product: product,
-      product_variant: variant
+      product_variant: variant || nil,
+      quantity: quantity
     )
 
-    cart_item.quantity += quantity
     cart_item.save!
   end
 
-  def reduce_item!(cart_item_id:, quantity:)
+  def change_item_quantity!(cart_item_id:, quantity:)
     cart_item = cart_items.find_by(id: cart_item_id)
     raise CartError, "Cart item not found" if cart_item.nil?
 
     quantity = quantity.to_i
-    if quantity > 0 && cart_item.quantity > quantity
-      cart_item.update!(quantity: cart_item.quantity - quantity)
+    if quantity > 0
+      cart_item.update!(quantity: quantity)
     else
-      cart_item.destroy!
+      raise CartError, "Quantity must be greater than 0"
     end
   end
 
@@ -64,24 +71,16 @@ class Cart < ApplicationRecord
   private
 
   def resolve_variant(product, variant_id, quantity)
-    if variant_id.present?
-      variant = product.product_variants.find_by(id: variant_id)
+    variant = product.product_variants.find_by(id: variant_id)
 
-      if variant.nil?
-        raise CartError, "Variant not found" unless variant
-      end
-
-      if variant.stock < quantity
-        raise CartError, "Variant out of stock"
-      end
-
-      variant
-    else
-      if product.stock < quantity
-        raise CartError, "Product out of stock"
-      end
-
-      nil
+    if variant.nil?
+      raise CartError, "Variant not found"
     end
+
+    if variant.stock < quantity
+      raise CartError, "Variant out of stock"
+    end
+
+    variant
   end
 end

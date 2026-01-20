@@ -17,6 +17,8 @@ class Product < ApplicationRecord
   accepts_nested_attributes_for :product_variants, allow_destroy: true
   accepts_nested_attributes_for :product_images, allow_destroy: true
 
+  scope :active, -> { where(is_active: true).order(created_at: :desc) }
+
   def self.ransackable_attributes(_auth_object = nil)
     %w[created_by created_at description id is_active name price_cents updated_at]
   end
@@ -53,17 +55,31 @@ class Product < ApplicationRecord
   end
 
   def main_image
-    product_images.find_by(is_main: true)&.image_file
+    image = product_images.find_by(is_main: true)&.image_file
+    return nil if image&.attached? == false
+
+    # This will return the URL for the attached image
+    Rails.application.routes.url_helpers.rails_blob_url(image)
+  rescue StandardError => e
+    Rails.logger.error "Error generating image URL: #{e.message}"
+    nil
+  end
+
+  def non_main_images_url
+    product_images.where(is_main: false).map do |image|
+      Rails.application.routes.url_helpers.rails_blob_url(image.image_file)
+    rescue StandardError => e
+      Rails.logger.error "Error generating image URL: #{e.message}"
+      nil
+    end
   end
 
   def discounted_price_cents
-    discount = Discount.active.first
+    discount = Discount.first
 
-    if discount
+    if discount&.active?
       price_cents - (price_cents * discount.percentage_off / 100)
     end
-
-    price_cents
   end
 
   def formatted_price
@@ -74,8 +90,6 @@ class Product < ApplicationRecord
     if discounted_price_cents
       Money.new(discounted_price_cents, CurrencySetting.currency).format
     end
-
-    formatted_price
   end
 
   def favorited_count
@@ -85,6 +99,7 @@ class Product < ApplicationRecord
   def as_json(_options = nil)
     {
       id: id,
+      category_ids: category_ids,
       name: name,
       description: description,
       main_image: main_image,
@@ -107,9 +122,9 @@ class Product < ApplicationRecord
       average_rating: average_rating,
       total_reviews: total_reviews,
       total_stock: total_stock,
-      images: product_images.where(is_main: false).map { |img| { image_file: img.image_file } },
+      images: non_main_images_url,
       variants: product_variants.map(&:as_json),
-      reviews: product_reviews.map(&:as_json)
+      reviews: product_reviews.map(&:as_minimal_json)
     }
   end
 end

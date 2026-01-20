@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class BlacklistedToken < ApplicationRecord
-  belongs_to :user
+  belongs_to :user, dependent: :destroy
 
   def self.ransackable_attributes(auth_object = nil)
     %w[jti expires_at user_id id created_at updated_at]

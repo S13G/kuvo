@@ -38,12 +38,6 @@ class ProductVariant < ApplicationRecord
     end
   end
 
-  private
-
-  def sync_product_activity
-    product.update_activity_status!
-  end
-
   def as_json(options = nil)
     {
       id: id,
@@ -56,6 +50,10 @@ class ProductVariant < ApplicationRecord
   end
 
   private
+
+  def sync_product_activity
+    product.update_activity_status!
+  end
 
   def resolve_size_and_color
     if size_name.present? && size_code.present?

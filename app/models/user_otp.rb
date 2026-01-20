@@ -1,5 +1,5 @@
 class UserOtp < ApplicationRecord
-  belongs_to :user
+  belongs_to :user, dependent: :destroy
 
   def self.ransackable_attributes(auth_object = nil)
     %w[user_id otp_code expires_at verified id created_at updated_at]

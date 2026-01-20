@@ -37,10 +37,7 @@ class Profile < ApplicationRecord
       strip: true,
       interlace: "Plane",
     )
-    Rails.application.routes.url_helpers.rails_representation_url(
-      optimized_image,
-      host: Rails.application.config.action_controller.asset_host || "localhost:3000"
-    )
+    Rails.application.routes.url_helpers.rails_blob_url(optimized_image)
   rescue => e
     Rails.logger.error "Error generating avatar URL: #{e.message}"
     "https://www.vecteezy.com/free-png/default-profile-picture"
