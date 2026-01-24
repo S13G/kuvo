@@ -12,7 +12,7 @@ class User < ApplicationRecord
   has_many :orders
 
   validates :email, presence: true, uniqueness: true
-  validates :username, presence: true, uniqueness: true
+  validates :username, length: { minimum: 8 }, presence: true, uniqueness: true
 
   validates :password, length: { minimum: 8 }, presence: true, if: :password_required?
   validate :password_complexity

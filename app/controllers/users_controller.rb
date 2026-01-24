@@ -10,17 +10,22 @@ class UsersController < ApplicationController
         data: { user: user.as_json },
         status_code: 201
       )
+    elsif User.exists?(username: user_params[:username])
+      render_error(
+        message: "Account with this username already exists",
+        status_code: 409
+      )
+    elsif User.exists?(email: user_params[:email])
+      render_error(
+        message: "Account with this email already exists",
+        status_code: 409
+      )
     else
       render_error(
         message: "Failed to create account",
         errors: user.errors.full_messages,
       )
     end
-  rescue StandardError => error
-    render_error(
-      message: "Failed to create account",
-      errors: error.message,
-    )
   end
 
   def request_otp
