@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_11_123218) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_09_223322) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -398,6 +398,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_11_123218) do
     t.index ["name"], name: "index_suggestions_on_name", opclass: :gin_trgm_ops, using: :gin
   end
 
+  create_table "transactions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.decimal "amount"
+    t.boolean "complete_fl", default: false
+    t.datetime "created_at", null: false
+    t.string "currency"
+    t.uuid "order_id", null: false
+    t.jsonb "raw_data"
+    t.string "status"
+    t.string "transaction_id"
+    t.datetime "updated_at", null: false
+    t.index ["complete_fl"], name: "index_transactions_on_complete_fl"
+    t.index ["order_id", "transaction_id"], name: "index_transactions_on_order_id_and_transaction_id", unique: true
+    t.index ["order_id"], name: "index_transactions_on_order_id"
+    t.index ["status"], name: "index_transactions_on_status"
+  end
+
   create_table "user_otps", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "expires_at"
@@ -453,5 +469,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_11_123218) do
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "transactions", "orders"
   add_foreign_key "user_otps", "users"
 end

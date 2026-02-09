@@ -12,8 +12,7 @@ class User < ApplicationRecord
   has_many :orders
 
   validates :email, presence: true, uniqueness: true
-  validates :username, length: { minimum: 8 }, presence: true, uniqueness: true
-
+  validates :username, length: { minimum: 4 }, presence: true, uniqueness: true
   validates :password, length: { minimum: 8 }, presence: true, if: :password_required?
   validate :password_complexity
 
@@ -24,11 +23,11 @@ class User < ApplicationRecord
   end
 
   def self.ransackable_attributes(auth_object = nil)
-    %w[created_at email provider username is_verified id uid updated_at password_digest]
+    %w[created_at cart_id email provider username is_verified id uid updated_at password_digest]
   end
 
   def self.ransackable_associations(auth_object = nil)
-    %w[profile user_otps blacklisted_tokens product_favorites favorited_products shipping_addresses]
+    %w[profile orders product_reviews cart user_otps blacklisted_tokens product_favorites favorited_products shipping_addresses]
   end
 
   def generate_secure_password(length = 12)

@@ -37,7 +37,7 @@ Rails.application.routes.draw do
       get :current, to: "carts#show"
       post :add_to_cart
       post :change_item_quantity
-      post :remove_item
+      post "/remove_item/:cart_item_id", to: "carts#remove_item"
     end
   end
 
@@ -49,8 +49,16 @@ Rails.application.routes.draw do
     collection do
       get "cancelled", to: "orders#cancelled_orders"
       get "completed", to: "orders#completed_orders"
+    end
+
+    member do
       post :cancel
-      get ":id/tracking_status", to: "orders#tracking_status"
+      get :tracking_status
+      get :success, to: "orders#order_success"
+      post :pay
+      post :verify_payment
     end
   end
+
+  post "webhooks/flutterwave", to: "flutterwave_webhooks#receive"
 end

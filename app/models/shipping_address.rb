@@ -26,6 +26,14 @@ class ShippingAddress < ApplicationRecord
     }
   end
 
+  def self.ransackable_attributes(auth_object = nil)
+    %w[address address_tag created_at id is_default updated_at user_id]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[user orders]
+  end
+
   private
 
   def ensure_single_default
