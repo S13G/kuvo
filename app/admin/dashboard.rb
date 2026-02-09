@@ -60,12 +60,9 @@ ActiveAdmin.register_page "Dashboard" do
   end
 
   content title: proc { I18n.t("active_admin.dashboard") } do
-    # Inject custom styles
     style @page_styles if @page_styles.present?
 
-    # First row - Summary Cards
     columns do
-      # Total Products
       column do
         panel "Products" do
           div class: "dashboard-card" do
@@ -79,7 +76,6 @@ ActiveAdmin.register_page "Dashboard" do
         end
       end
 
-      # Total Users
       column do
         panel "Users" do
           div class: "dashboard-card" do
@@ -92,60 +88,82 @@ ActiveAdmin.register_page "Dashboard" do
         end
       end
 
-      # Total Revenue (example - implement your own method)
+      # Total Revenue
       column do
         panel "Revenue" do
+          total_revenue = Transaction.where(complete_fl: true).sum(:amount)
           div class: "dashboard-card" do
-            h1 number_to_currency(0), class: "dashboard-stat"
+            h1 number_to_currency(total_revenue), class: "dashboard-stat"
             p "Total Revenue", class: "dashboard-label"
           end
           div class: "dashboard-card-actions" do
-            link_to "View Reports", "#", class: "button"
+            link_to "View Transactions", url_for([:admin, :transactions]), class: "button"
           end
         end
       end
 
-      # Recent Orders (example - implement your own model)
+      # Recent Orders
       column do
         panel "Recent Orders" do
+          recent_orders_count = Order.where("created_at >= ?", 24.hours.ago).count
           div class: "dashboard-card" do
-            h1 "0", class: "dashboard-stat"
+            h1 recent_orders_count.to_s, class: "dashboard-stat"
             p "New Orders (24h)", class: "dashboard-label"
           end
           div class: "dashboard-card-actions" do
-            link_to "View Orders", "#", class: "button"
+            link_to "View Orders", url_for([:admin, :orders]), class: "button"
           end
         end
       end
     end
 
-    # Second row - Charts and Recent Activities
     columns do
-      # Sales Chart placeholder
       column do
-        panel "Sales Overview (Last 30 Days)" do
-          div style: "height: 300px; background: #f5f5f5; display: flex; align-items: center; justify-content: center;" do
-            p "Sales chart will be displayed here"
+        panel "Recent Processed Transactions" do
+          table_for Transaction.includes(:order).order(created_at: :desc).limit(10) do
+            column :transaction_id do |t|
+              link_to t.transaction_id, admin_transaction_path(t)
+            end
+            column :order do |t|
+              link_to t.order.tracking_number, admin_order_path(t.order)
+            end
+            column :amount do |t|
+              number_to_currency(t.amount)
+            end
+            column :status
+            column :created_at do |t|
+              t.created_at.strftime("%Y-%m-%d %H:%M")
+            end
+          end
+          div style: "margin-top: 10px;" do
+            link_to "View All Transactions", admin_transactions_path, class: "button"
           end
         end
       end
 
-      # Recent Activities
       column do
         panel "Recent Activities" do
+          activities = []
+          activities += User.order(created_at: :desc).limit(3).map do |u|
+            { type: "user", text: "New user: #{u.email}", time: u.created_at }
+          end
+          activities += Order.order(created_at: :desc).limit(3).map do |o|
+            { type: "order", text: "Order #{o.tracking_number} placed", time: o.created_at }
+          end
+          activities += ProductReview.order(created_at: :desc).limit(3).map do |r|
+            { type: "review", text: "Review for #{r.product.name}", time: r.created_at }
+          end
+
+          activities = activities.sort_by { |a| a[:time] }.reverse.first(10)
+
           ul class: "recent-activities" do
-            [
-              { type: "user", text: "New user registered: John Doe", time: "2 minutes ago" },
-              { type: "order", text: "New order #1234 placed", time: "15 minutes ago" },
-              { type: "product", text: 'Product "Sample Product" was updated', time: "1 hour ago" },
-              { type: "review", text: 'New review added for "Sample Product"', time: "3 hours ago" }
-            ].each do |activity|
+            activities.each do |activity|
               li class: "activity-item activity-#{activity[:type]}" do
                 span class: "activity-text" do
                   activity[:text]
                 end
                 span class: "activity-time" do
-                  activity[:time]
+                  time_ago_in_words(activity[:time]) + " ago"
                 end
               end
             end
@@ -154,9 +172,7 @@ ActiveAdmin.register_page "Dashboard" do
       end
     end
 
-    # Third row - Low Stock Products and Recent Reviews
     columns do
-      # Low Stock
       column do
         panel "Low Stock Products" do
           table_for Product.joins(:product_variants)

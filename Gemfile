@@ -43,3 +43,5 @@ gem "activeadmin", "~> 3.4"
 gem "chartkick", "~> 5.2"
 
 gem "groupdate", "~> 6.7"
+
+gem "httparty", "~> 0.24.2"
