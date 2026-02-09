@@ -15,12 +15,20 @@ class CartItem < ApplicationRecord
     item_unit_price_cents * quantity
   end
 
+  def item_unit_price
+    formatted_price(item_unit_price_cents)
+  end
+
+  def item_total_price
+    formatted_price(item_total_price_cents)
+  end
+
   def as_json(_options = nil)
     {
       id: id,
       quantity: quantity,
-      item_unit_price_cents: item_unit_price_cents,
-      item_total_price_cents: item_total_price_cents,
+      item_unit_price: item_unit_price,
+      item_total_price: item_total_price,
       product: {
         id: product_id,
         name: product.name,

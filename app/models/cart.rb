@@ -20,8 +20,12 @@ class Cart < ApplicationRecord
       raise CartError, "Variant is required for this product"
     end
 
-    if product.total_stock < quantity
+    if product.total_stock == 0
       raise CartError, "Product out of stock"
+    end
+
+    if quantity > product.total_stock
+      raise CartError, "Quantity can't be greater than product's available stock"
     end
 
     if product_variant_id.present?
@@ -47,6 +51,10 @@ class Cart < ApplicationRecord
     else
       raise CartError, "Quantity must be greater than 0"
     end
+
+    if quantity > cart_item.product.total_stock
+      raise CartError, "Quantity can't be greater than product's available stock"
+    end
   end
 
   def remove_item!(cart_item_id:)
@@ -57,13 +65,17 @@ class Cart < ApplicationRecord
   end
 
   def total_cart_amount_in_cents
-    cart_items.sum(&:item_total_price_cents)
+    cart_items.to_a.sum(&:item_total_price_cents)
+  end
+
+  def total_cart_amount
+    formatted_price(total_cart_amount_in_cents)
   end
 
   def as_json(_options = nil)
     {
       id: id,
-      total_cart_amount_in_cents: total_cart_amount_in_cents,
+      total_cart_amount: total_cart_amount,
       cart_items: cart_items.as_json
     }
   end
