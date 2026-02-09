@@ -2,6 +2,7 @@ class Order < ApplicationRecord
   belongs_to :user
   belongs_to :shipping_address
   has_many :order_items
+  has_many :transactions
 
   enum :status, {
     pending: "pending",
@@ -19,6 +20,7 @@ class Order < ApplicationRecord
 
   before_validation :generate_tracking_number, on: :create
   after_create :record_initial_status
+  after_create :update_products_activity_status
   after_update :record_status_change, if: :saved_change_to_status?
 
   def record_initial_status
@@ -67,30 +69,56 @@ class Order < ApplicationRecord
     total_amount_cents + shipping_fee_cents
   end
 
+  def total_amount
+    formatted_price(total_amount_cents)
+  end
+
+  def total_amount_with_shipping_price
+    formatted_price(total_amount_with_shipping_cents)
+  end
+
+  def shipping_price
+    formatted_price(shipping_fee_cents)
+  end
+
   def self.ransackable_attributes(auth_object = nil)
     %w[created_at id shipping_address_id shipping_fee_cents status total_amount_cents tracking_number updated_at user_id]
   end
 
   def self.ransackable_associations(auth_object = nil)
-    %w[order_items shipping_address user]
+    %w[order_items shipping_address user transactions]
   end
 
   def cancel!
-    update(status: :cancelled)
+    ActiveRecord::Base.transaction do
+      update!(status: :cancelled)
+      order_items.each do |item|
+        item.product_variant&.restore_stock(item.quantity)
+      end
+    end
   end
 
   def as_json(options = nil)
     {
       id: id,
       status: status,
-      total_amount_cents: total_amount_cents,
-      shipping_fee_cents: shipping_fee_cents,
-      total_amount_with_shipping_cents: total_amount_with_shipping_cents,
+      total_amount: total_amount,
+      shipping_fee: shipping_price,
+      total_amount_with_shipping_price: total_amount_with_shipping_price,
       tracking_number: tracking_number,
       shipping_address: shipping_address.as_json,
       order_items: order_items.as_json,
       status_history: status_history
     }
+  end
+
+  private
+
+  def update_products_activity_status
+    order_items.each do |order_item|
+      product = order_item.product
+      product.update_activity_status!
+    end
   end
 
 end
