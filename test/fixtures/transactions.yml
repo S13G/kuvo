@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  order: one
+  transaction_id: MyString
+  status: MyString
+  amount: 9.99
+  currency: MyString
+  raw_data:
+
+two:
+  order: two
+  transaction_id: MyString
+  status: MyString
+  amount: 9.99
+  currency: MyString
+  raw_data: 
