@@ -38,6 +38,13 @@ class ProductVariant < ApplicationRecord
     end
   end
 
+  def restore_stock(quantity)
+    with_lock do
+      self.stock += quantity
+      save!
+    end
+  end
+
   def as_json(options = nil)
     {
       id: id,

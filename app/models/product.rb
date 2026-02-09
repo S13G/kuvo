@@ -17,7 +17,12 @@ class Product < ApplicationRecord
   accepts_nested_attributes_for :product_variants, allow_destroy: true
   accepts_nested_attributes_for :product_images, allow_destroy: true
 
-  scope :active, -> { where(is_active: true).order(created_at: :desc) }
+  scope :active_with_stock, -> { where(is_active: true).with_available_stock }
+
+  def self.with_available_stock
+    joins(:product_variants)
+      .where("product_variants.stock > 0")
+  end
 
   def self.ransackable_attributes(_auth_object = nil)
     %w[created_by created_at description id is_active name price_cents updated_at]
@@ -82,13 +87,13 @@ class Product < ApplicationRecord
     end
   end
 
-  def formatted_price
-    Money.new(price_cents, CurrencySetting.currency).format
+  def product_price
+    formatted_price(price_cents)
   end
 
-  def formatted_discounted_price
+  def product_discounted_price
     if discounted_price_cents
-      Money.new(discounted_price_cents, CurrencySetting.currency).format
+      formatted_price(discounted_price_cents)
     end
   end
 
@@ -103,8 +108,8 @@ class Product < ApplicationRecord
       name: name,
       description: description,
       main_image: main_image,
-      price: formatted_price,
-      discounted_price: formatted_discounted_price,
+      price: product_price,
+      discounted_price: product_discounted_price,
       average_rating: average_rating,
       total_product_review: total_reviews,
       total_stock: total_stock
@@ -116,8 +121,8 @@ class Product < ApplicationRecord
       id: id,
       name: name,
       description: description,
-      price: formatted_price,
-      discounted_price: formatted_discounted_price,
+      price: product_price,
+      discounted_price: product_discounted_price,
       main_image: main_image,
       average_rating: average_rating,
       total_reviews: total_reviews,

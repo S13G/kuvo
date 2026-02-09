@@ -12,7 +12,7 @@ class ProductsController < ApplicationController
     per_page = (params[:per_page] || 20).to_i
     page = (params[:page] || 1).to_i
 
-    query = Product.active.joins(:categories).distinct
+    query = Product.active_with_stock.joins(:categories).distinct
 
     if search.present?
       Suggestion.record_search(search) # record the search term
@@ -92,7 +92,7 @@ class ProductsController < ApplicationController
   def show
     product = Product.find_by(id: params[:id])
 
-    if product.nil?
+    if product.nil? || product.total_stock == 0
       return render_error(message: "Product not found")
     end
 

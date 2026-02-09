@@ -26,9 +26,9 @@ ActiveAdmin.register Product do
       product.product_categories.map(&:category).map(&:name).join(", ").html_safe
     end
     column :price_cents
-    column :formatted_price
+    column :product_price
     column :discounted_price_cents if discount.present? && discount.active
-    column :formatted_discounted_price if discount.present? && discount.active
+    column :product_discounted_price if discount.present? && discount.active
     column :discount_percentage do
       discount.percentage_off
     end if discount.present? && discount.active
@@ -49,9 +49,9 @@ ActiveAdmin.register Product do
       row :name
       row :description
       row :price_cents
-      row :formatted_price
+      row :product_price
       row :discounted_price_cents if discount.present? && discount.active
-      row :formatted_discounted_price if discount.present? && discount.active
+      row :product_discounted_price if discount.present? && discount.active
       row :discount_percentage do
         discount.percentage_off
       end if discount.present? && discount.active
