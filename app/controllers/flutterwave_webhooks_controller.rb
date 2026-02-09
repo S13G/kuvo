@@ -4,13 +4,15 @@ class FlutterwaveWebhooksController < ApplicationController
   skip_before_action :authenticate_request
 
   def receive
-    # Verify Flutterwave signature
-    puts "headers: #{request.headers}"
-    secret_hash = ENV["FLW_SECRET_HASH"]
-    signature = request.headers["Verif-hash"]
+    secret_hash = ENV["FLW_SECRET_HASH"]&.gsub("\"", "")
+    signature = request.headers["HTTP_FLUTTERWAVE_SIGNATURE"]
+
+    if signature.blank? || (secret_hash.present? && signature != secret_hash)
+      Rails.logger.warn("Flutterwave webhook signature issue. Expected: #{secret_hash}, Got: #{signature}")
+      Rails.logger.info("Incoming Webhook Relevant Headers: #{request.headers.to_h.select { |k, _| k.downcase.include?('verif') || k.downcase.include?('signature') || k.start_with?('HTTP_') }.inspect}")
+    end
 
     if secret_hash.present? && signature != secret_hash
-      Rails.logger.warn("Flutterwave webhook signature mismatch. Expected: #{secret_hash}, Got: #{signature}")
       return render_success(status_code: 200)
     end
 
