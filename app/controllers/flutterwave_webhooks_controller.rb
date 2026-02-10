@@ -9,7 +9,6 @@ class FlutterwaveWebhooksController < ApplicationController
 
     if signature.blank? || (secret_hash.present? && signature != secret_hash)
       Rails.logger.warn("Flutterwave webhook signature issue. Expected: #{secret_hash}, Got: #{signature}")
-      Rails.logger.info("Incoming Webhook Relevant Headers: #{request.headers.to_h.select { |k, _| k.downcase.include?('verif') || k.downcase.include?('signature') || k.start_with?('HTTP_') }.inspect}")
     end
 
     if secret_hash.present? && signature != secret_hash
